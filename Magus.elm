@@ -11,20 +11,19 @@ import Kaszt exposing (..)
 
 
 type alias Model =
-    { nev : String
-    , karakter : Karakter
-    , kepessegek : Kepessegek
-    , fegyverKepzettsegek : List FegyverKepzettseg
-    , gameNumber : Int
-    , entries : List Entry
+    { karakter : Karakter
+    , ujKarakter : Karakter
     }
 
 
 type alias Karakter =
-    { faj : Faj
+    { nev : String
+    , faj : Faj
     , kaszt : Kaszt
     , jellem : Jellem
     , iskola : String
+    , kepessegek : Kepessegek
+    , fegyverKepzettsegek : List FegyverKepzettseg
     }
 
 
@@ -90,21 +89,30 @@ type alias Entry =
 
 initialModel : Model
 initialModel =
-    { nev = "Margó"
-    , karakter = Karakter Elf Amazon Elet "általános"
-    , kepessegek = Kepessegek 11 12 13 14 15 16 17 18 19
-    , fegyverKepzettsegek =
-        [ FegyverKepzettseg Alapfok Kard
-        , FegyverKepzettseg Mesterfok Tor
-        , FegyverKepzettseg Hasonlo Okol
-        , FegyverKepzettseg Jaratlan Bot
-        ]
+    { karakter =
+        Karakter "Margó"
+            Elf
+            Amazon
+            Elet
+            "általános"
+            (Kepessegek 11 12 13 14 15 16 17 18 19)
+            [ FegyverKepzettseg Alapfok Kard
+            , FegyverKepzettseg Mesterfok Tor
+            , FegyverKepzettseg Hasonlo Okol
+            , FegyverKepzettseg Jaratlan Bot
+            ]
+    , ujKarakter = ujKarakter
     }
 
 
-calcAlapKE : Model -> Int
-calcAlapKE model =
-    (calcKasztAlapKE model.karakter.kaszt) + (calcTizfeletti model.kepessegek.ugyesseg) + (calcTizfeletti model.kepessegek.gyorsasag)
+ujKarakter : Karakter
+ujKarakter =
+    Karakter "Anonymous" Ember Harcos Elet "nincs" (Kepessegek 0 0 0 0 0 0 0 0 0) []
+
+
+calcAlapKE : Karakter -> Int
+calcAlapKE karakter =
+    (calcKasztAlapKE karakter.kaszt) + (calcTizfeletti karakter.kepessegek.ugyesseg) + (calcTizfeletti karakter.kepessegek.gyorsasag)
 
 
 calcKasztAlapKE : Kaszt -> Int
@@ -112,12 +120,12 @@ calcKasztAlapKE kaszt =
     selectKasztErtek .keAlap kaszt
 
 
-calcAlapTE : Model -> Int
-calcAlapTE model =
-    (calcKasztAlapTE model.karakter.kaszt)
-        + (calcTizfeletti model.kepessegek.ero)
-        + (calcTizfeletti model.kepessegek.ugyesseg)
-        + (calcTizfeletti model.kepessegek.gyorsasag)
+calcAlapTE : Karakter -> Int
+calcAlapTE karakter =
+    (calcKasztAlapTE karakter.kaszt)
+        + (calcTizfeletti karakter.kepessegek.ero)
+        + (calcTizfeletti karakter.kepessegek.ugyesseg)
+        + (calcTizfeletti karakter.kepessegek.gyorsasag)
 
 
 calcKasztAlapTE : Kaszt -> Int
@@ -125,11 +133,11 @@ calcKasztAlapTE kaszt =
     selectKasztErtek .teAlap kaszt
 
 
-calcAlapVE : Model -> Int
-calcAlapVE model =
-    (calcKasztAlapVE model.karakter.kaszt)
-        + (calcTizfeletti model.kepessegek.ugyesseg)
-        + (calcTizfeletti model.kepessegek.gyorsasag)
+calcAlapVE : Karakter -> Int
+calcAlapVE karakter =
+    (calcKasztAlapVE karakter.kaszt)
+        + (calcTizfeletti karakter.kepessegek.ugyesseg)
+        + (calcTizfeletti karakter.kepessegek.gyorsasag)
 
 
 calcKasztAlapVE : Kaszt -> Int
@@ -145,8 +153,8 @@ calcTizfeletti ertek =
         0
 
 
-calcFegyverKE : Model -> FegyverKepzettseg -> Int
-calcFegyverKE model fegyverKepzettseg =
+calcFegyverKE : Karakter -> FegyverKepzettseg -> Int
+calcFegyverKE karakter fegyverKepzettseg =
     let
         kepzettsegFokKEBonus fok =
             case fok of
@@ -176,11 +184,11 @@ calcFegyverKE model fegyverKepzettseg =
                 Okol ->
                     10
     in
-        (calcAlapKE model) + (kepzettsegFokKEBonus fegyverKepzettseg.fok) + (fegyverKE fegyverKepzettseg.fegyver)
+        (calcAlapKE karakter) + (kepzettsegFokKEBonus fegyverKepzettseg.fok) + (fegyverKE fegyverKepzettseg.fegyver)
 
 
-calcFegyverTE : Model -> FegyverKepzettseg -> Int
-calcFegyverTE model fegyverKepzettseg =
+calcFegyverTE : Karakter -> FegyverKepzettseg -> Int
+calcFegyverTE karakter fegyverKepzettseg =
     let
         kepzettsegFokTEBonus fok =
             case fok of
@@ -210,11 +218,11 @@ calcFegyverTE model fegyverKepzettseg =
                 Okol ->
                     4
     in
-        (calcAlapTE model) + (kepzettsegFokTEBonus fegyverKepzettseg.fok) + (fegyverTE fegyverKepzettseg.fegyver)
+        (calcAlapTE karakter) + (kepzettsegFokTEBonus fegyverKepzettseg.fok) + (fegyverTE fegyverKepzettseg.fegyver)
 
 
-calcFegyverVE : Model -> FegyverKepzettseg -> Int
-calcFegyverVE model fegyverKepzettseg =
+calcFegyverVE : Karakter -> FegyverKepzettseg -> Int
+calcFegyverVE karakter fegyverKepzettseg =
     let
         kepzettsegFokVEBonus fok =
             case fok of
@@ -244,17 +252,17 @@ calcFegyverVE model fegyverKepzettseg =
                 Okol ->
                     1
     in
-        (calcAlapVE model) + (kepzettsegFokVEBonus fegyverKepzettseg.fok) + (fegyverVE fegyverKepzettseg.fegyver)
+        (calcAlapVE karakter) + (kepzettsegFokVEBonus fegyverKepzettseg.fok) + (fegyverVE fegyverKepzettseg.fegyver)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewRandom randomNumber ->
-            ( { model | gameNumber = randomNumber }, Cmd.none )
+            ( model, Cmd.none )
 
         NewGame ->
-            ( { model | entries = initialEntries }, generateRandomNumber )
+            ( model, generateRandomNumber )
 
         Mark id ->
             let
@@ -264,7 +272,7 @@ update msg model =
                     else
                         e
             in
-                ( { model | entries = List.map markEntry model.entries }, Cmd.none )
+                ( model, Cmd.none )
 
 
 
@@ -295,11 +303,6 @@ view model =
     div [ class "content" ]
         [ viewHeader "M.A.G.U.S Játékos"
         , viewKarakter model.karakter
-        , viewKepessegek model.kepessegek
-        , viewAlapKezdemenyezoErtek model
-        , viewAlapTamadoErtek model
-        , viewAlapVedoErtek model
-        , viewFegyverek model
 
         --        , viewEntryList model.entries
         --        , viewScore (sumMarkedPoints model.entries)
@@ -309,41 +312,59 @@ view model =
         ]
 
 
-viewFegyverek : Model -> Html Msg
-viewFegyverek model =
+viewKarakter : Karakter -> Html msg
+viewKarakter karakter =
+    div [ class "karakter" ]
+        [ viewFaj karakter.faj
+        , viewKaszt karakter.kaszt
+        , viewJellem karakter.jellem
+        , div [ class "iskola" ]
+            [ viewCimke "Iskola"
+            , text karakter.iskola
+            ]
+        , viewKepessegek karakter.kepessegek
+        , viewAlapKezdemenyezoErtek karakter
+        , viewAlapTamadoErtek karakter
+        , viewAlapVedoErtek karakter
+        , viewFegyverek karakter
+        ]
+
+
+viewFegyverek : Karakter -> Html msg
+viewFegyverek karakter =
     let
         fegyverlista =
-            List.map (viewFegyver model) model.fegyverKepzettsegek
+            List.map (viewFegyver karakter) karakter.fegyverKepzettsegek
     in
         ul [ class "fegyverek" ] fegyverlista
 
 
-viewFegyver : Model -> FegyverKepzettseg -> Html msg
-viewFegyver model fegyverKepzettseg =
+viewFegyver : Karakter -> FegyverKepzettseg -> Html msg
+viewFegyver karakter fegyverKepzettseg =
     li []
         [ viewCimke (toString fegyverKepzettseg.fegyver)
         , text (toString fegyverKepzettseg.fok)
         , ul [ class "fegyver" ]
-            [ li [] [ viewCimke "KE", text (toString (calcFegyverKE model fegyverKepzettseg)) ]
-            , li [] [ viewCimke "TE", text (toString (calcFegyverTE model fegyverKepzettseg)) ]
-            , li [] [ viewCimke "VE", text (toString (calcFegyverVE model fegyverKepzettseg)) ]
+            [ li [] [ viewCimke "KE", text (toString (calcFegyverKE karakter fegyverKepzettseg)) ]
+            , li [] [ viewCimke "TE", text (toString (calcFegyverTE karakter fegyverKepzettseg)) ]
+            , li [] [ viewCimke "VE", text (toString (calcFegyverVE karakter fegyverKepzettseg)) ]
             ]
         ]
 
 
-viewAlapVedoErtek : Model -> Html msg
-viewAlapVedoErtek model =
-    viewKepesseg "Alap VE" (calcAlapVE model)
+viewAlapVedoErtek : Karakter -> Html msg
+viewAlapVedoErtek karakter =
+    viewKepesseg "Alap VE" (calcAlapVE karakter)
 
 
-viewAlapTamadoErtek : Model -> Html msg
-viewAlapTamadoErtek model =
-    viewKepesseg "Alap TE" (calcAlapTE model)
+viewAlapTamadoErtek : Karakter -> Html msg
+viewAlapTamadoErtek karakter =
+    viewKepesseg "Alap TE" (calcAlapTE karakter)
 
 
-viewAlapKezdemenyezoErtek : Model -> Html msg
-viewAlapKezdemenyezoErtek model =
-    viewKepesseg "Alap KE" (calcAlapKE model)
+viewAlapKezdemenyezoErtek : Karakter -> Html msg
+viewAlapKezdemenyezoErtek karakter =
+    viewKepesseg "Alap KE" (calcAlapKE karakter)
 
 
 viewKepessegek : Kepessegek -> Html msg
@@ -372,19 +393,6 @@ viewKepesseg cimke ertek =
 viewCimke : String -> Html msg
 viewCimke szoveg =
     span [ class "cimke" ] [ text (szoveg ++ ": ") ]
-
-
-viewKarakter : Karakter -> Html msg
-viewKarakter karakter =
-    div [ class "karakter" ]
-        [ viewFaj karakter.faj
-        , viewKaszt karakter.kaszt
-        , viewJellem karakter.jellem
-        , div [ class "iskola" ]
-            [ viewCimke "Iskola"
-            , text karakter.iskola
-            ]
-        ]
 
 
 viewFaj : Faj -> Html msg
