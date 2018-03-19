@@ -58,6 +58,7 @@ type Fegyver
     | Kard
     | Tor
     | Bot
+    | KardFejvadasz
 
 
 type Faj
@@ -91,12 +92,13 @@ initialModel : Model
 initialModel =
     { karakter =
         Karakter "Margó"
-            Elf
-            Amazon
-            Elet
+            Ember
+            Fejvadasz
+            Rend
             "általános"
-            (Kepessegek 11 12 13 14 15 16 17 18 19)
+            (Kepessegek 15 15 15 12 12 12 12 12 12)
             [ FegyverKepzettseg Alapfok Kard
+            , FegyverKepzettseg Alapfok KardFejvadasz
             , FegyverKepzettseg Mesterfok Tor
             , FegyverKepzettseg Hasonlo Okol
             , FegyverKepzettseg Jaratlan Bot
@@ -183,6 +185,9 @@ calcFegyverKE karakter fegyverKepzettseg =
 
                 Okol ->
                     10
+
+                KardFejvadasz ->
+                    8
     in
         (calcAlapKE karakter) + (kepzettsegFokKEBonus fegyverKepzettseg.fok) + (fegyverKE fegyverKepzettseg.fegyver)
 
@@ -217,6 +222,9 @@ calcFegyverTE karakter fegyverKepzettseg =
 
                 Okol ->
                     4
+
+                KardFejvadasz ->
+                    16
     in
         (calcAlapTE karakter) + (kepzettsegFokTEBonus fegyverKepzettseg.fok) + (fegyverTE fegyverKepzettseg.fegyver)
 
@@ -251,6 +259,9 @@ calcFegyverVE karakter fegyverKepzettseg =
 
                 Okol ->
                     1
+
+                KardFejvadasz ->
+                    16
     in
         (calcAlapVE karakter) + (kepzettsegFokVEBonus fegyverKepzettseg.fok) + (fegyverVE fegyverKepzettseg.fegyver)
 
