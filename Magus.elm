@@ -285,6 +285,13 @@ update msg model =
             in
                 ( model, Cmd.none )
 
+        FajValasztas faj ->
+            let
+                updateFaj karakter ujFaj =
+                    { karakter | faj = ujFaj }
+            in
+                ( { model | karakter = (updateFaj model.karakter faj) }, Cmd.none )
+
 
 
 -- COMMANDS
@@ -303,6 +310,7 @@ type Msg
     = NewGame
     | Mark Int
     | NewRandom Int
+    | FajValasztas Faj
 
 
 
@@ -323,7 +331,7 @@ view model =
         ]
 
 
-viewKarakter : Karakter -> Html msg
+viewKarakter : Karakter -> Html Msg
 viewKarakter karakter =
     div [ class "karakter" ]
         [ viewFaj karakter.faj
@@ -341,7 +349,7 @@ viewKarakter karakter =
         ]
 
 
-viewFegyverek : Karakter -> Html msg
+viewFegyverek : Karakter -> Html Msg
 viewFegyverek karakter =
     let
         fegyverlista =
@@ -350,7 +358,7 @@ viewFegyverek karakter =
         ul [ class "fegyverek" ] fegyverlista
 
 
-viewFegyver : Karakter -> FegyverKepzettseg -> Html msg
+viewFegyver : Karakter -> FegyverKepzettseg -> Html Msg
 viewFegyver karakter fegyverKepzettseg =
     li []
         [ viewCimke (toString fegyverKepzettseg.fegyver)
@@ -363,22 +371,22 @@ viewFegyver karakter fegyverKepzettseg =
         ]
 
 
-viewAlapVedoErtek : Karakter -> Html msg
+viewAlapVedoErtek : Karakter -> Html Msg
 viewAlapVedoErtek karakter =
     viewKepesseg "Alap VE" (calcAlapVE karakter)
 
 
-viewAlapTamadoErtek : Karakter -> Html msg
+viewAlapTamadoErtek : Karakter -> Html Msg
 viewAlapTamadoErtek karakter =
     viewKepesseg "Alap TE" (calcAlapTE karakter)
 
 
-viewAlapKezdemenyezoErtek : Karakter -> Html msg
+viewAlapKezdemenyezoErtek : Karakter -> Html Msg
 viewAlapKezdemenyezoErtek karakter =
     viewKepesseg "Alap KE" (calcAlapKE karakter)
 
 
-viewKepessegek : Kepessegek -> Html msg
+viewKepessegek : Kepessegek -> Html Msg
 viewKepessegek kepessegek =
     div [ class "kepessegek" ]
         [ viewKepesseg "Erő" kepessegek.ero
@@ -393,7 +401,7 @@ viewKepessegek kepessegek =
         ]
 
 
-viewKepesseg : String -> Int -> Html msg
+viewKepesseg : String -> Int -> Html Msg
 viewKepesseg cimke ertek =
     div []
         [ viewCimke cimke
@@ -401,20 +409,39 @@ viewKepesseg cimke ertek =
         ]
 
 
-viewCimke : String -> Html msg
+viewCimke : String -> Html Msg
 viewCimke szoveg =
     span [ class "cimke" ] [ text (szoveg ++ ": ") ]
 
 
-viewFaj : Faj -> Html msg
+viewFajButtons : Faj -> Html Msg
+viewFajButtons faj =
+    let
+        viewFajButton aktualis =
+            li [ classList [ ( "marked", faj == aktualis ) ], onClick (FajValasztas aktualis) ] [ text (toString aktualis) ]
+    in
+        ul [ class "faj" ]
+            [ viewFajButton Ember
+            , viewFajButton Elf
+            , viewFajButton Felelf
+            , viewFajButton Torpe
+            , viewFajButton Ork
+            , viewFajButton Amund
+            , viewFajButton Dzsen
+            , viewFajButton Khal
+            , viewFajButton Wier
+            ]
+
+
+viewFaj : Faj -> Html Msg
 viewFaj faj =
     div [ class "faj" ]
         [ viewCimke "Faj"
-        , text (toString faj)
+        , viewFajButtons faj
         ]
 
 
-viewKaszt : Kaszt -> Html msg
+viewKaszt : Kaszt -> Html Msg
 viewKaszt kaszt =
     div [ class "kaszt" ]
         [ viewCimke "Kaszt"
@@ -422,7 +449,7 @@ viewKaszt kaszt =
         ]
 
 
-viewJellem : Jellem -> Html msg
+viewJellem : Jellem -> Html Msg
 viewJellem jellem =
     div [ class "jellem" ]
         [ viewCimke "Jellem"
