@@ -13,6 +13,7 @@ import Kaszt exposing (..)
 type alias Model =
     { karakter : Karakter
     , ujKarakter : Karakter
+    , kockadobas : Int
     }
 
 
@@ -104,6 +105,7 @@ initialModel =
             , FegyverKepzettseg Jaratlan Bot
             ]
     , ujKarakter = ujKarakter
+    , kockadobas = 0
     }
 
 
@@ -273,7 +275,7 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
-            ( model, generateRandomNumber )
+            ( model, generateRandomNumber 100 )
 
         Mark id ->
             let
@@ -292,14 +294,25 @@ update msg model =
             in
                 ( { model | karakter = (updateFaj model.karakter faj) }, Cmd.none )
 
+        KockaDobas darab oldalszam plusz ->
+            ( model, kockaDobasGeneralas darab oldalszam plusz )
+
+        UjDobas ( veletlenErtek, plusz ) ->
+            ( { model | kockadobas = (List.sum veletlenErtek) + plusz }, Cmd.none )
+
 
 
 -- COMMANDS
 
 
-generateRandomNumber : Cmd Msg
-generateRandomNumber =
-    Random.generate NewRandom (Random.int 1 100)
+generateRandomNumber : Int -> Cmd Msg
+generateRandomNumber max =
+    Random.generate NewRandom (Random.int 1 max)
+
+
+kockaDobasGeneralas : Int -> Int -> Int -> Cmd Msg
+kockaDobasGeneralas db max plusz =
+    Random.generate UjDobas (Random.pair (Random.list db (Random.int 1 max)) (Random.int plusz plusz))
 
 
 
@@ -311,6 +324,8 @@ type Msg
     | Mark Int
     | NewRandom Int
     | FajValasztas Faj
+    | KockaDobas Int Int Int
+    | UjDobas ( List Int, Int )
 
 
 
@@ -321,6 +336,7 @@ view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ viewHeader "M.A.G.U.S Játékos"
+        , viewDobalas model.kockadobas
         , viewKarakter model.karakter
 
         --        , viewEntryList model.entries
@@ -329,6 +345,37 @@ view model =
         --            [ button [ onClick NewGame ] [ text "New Game" ] ]
         , div [ class "debug" ] [ text (toString model) ]
         ]
+
+
+viewDobalas : Int -> Html Msg
+viewDobalas aktualisDobas =
+    let
+        kockaKod darab oldalak plusz =
+            case ( darab, oldalak, plusz ) of
+                ( 1, old, 0 ) ->
+                    "k" ++ (toString old)
+
+                ( 1, old, _ ) ->
+                    "k" ++ (toString old) ++ "+" ++ (toString plusz)
+
+                ( _, old, 0 ) ->
+                    (toString darab) ++ "k" ++ (toString oldalak)
+
+                ( _, _, _ ) ->
+                    (toString darab) ++ "k" ++ (toString oldalak) ++ "+" ++ (toString plusz)
+
+        viewKockaButton darab oldalak plusz =
+            li [ classList [ ( "marked", False ) ], onClick (KockaDobas darab oldalak plusz) ] [ text (kockaKod darab oldalak plusz) ]
+    in
+        div []
+            [ viewCimke "Dobott érték"
+            , text (toString aktualisDobas)
+            , ul [ class "kocka" ]
+                [ viewKockaButton 1 6 0
+                , viewKockaButton 4 10 0
+                , viewKockaButton 2 3 3
+                ]
+            ]
 
 
 viewKarakter : Karakter -> Html Msg
