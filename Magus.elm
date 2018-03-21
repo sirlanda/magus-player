@@ -1,5 +1,6 @@
 module Magus exposing (..)
 
+import Array exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -11,7 +12,8 @@ import Kaszt exposing (..)
 
 
 type alias Model =
-    { karakter : Karakter
+    { csapat : Array Karakter
+    , aktualisKarakterIdx : Int
     , ujKarakter : Karakter
     , kockadobas : Int
     }
@@ -89,21 +91,31 @@ type alias Entry =
     }
 
 
+aktualisKarakter : Model -> Maybe Karakter
+aktualisKarakter model =
+    Array.get model.aktualisKarakterIdx model.csapat
+
+
+margo : Karakter
+margo =
+    Karakter "Margó"
+        Ember
+        Fejvadasz
+        Rend
+        "általános"
+        (Kepessegek 15 15 15 12 12 12 12 12 12)
+        [ FegyverKepzettseg Alapfok Kard
+        , FegyverKepzettseg Alapfok KardFejvadasz
+        , FegyverKepzettseg Mesterfok Tor
+        , FegyverKepzettseg Hasonlo Okol
+        , FegyverKepzettseg Jaratlan Bot
+        ]
+
+
 initialModel : Model
 initialModel =
-    { karakter =
-        Karakter "Margó"
-            Ember
-            Fejvadasz
-            Rend
-            "általános"
-            (Kepessegek 15 15 15 12 12 12 12 12 12)
-            [ FegyverKepzettseg Alapfok Kard
-            , FegyverKepzettseg Alapfok KardFejvadasz
-            , FegyverKepzettseg Mesterfok Tor
-            , FegyverKepzettseg Hasonlo Okol
-            , FegyverKepzettseg Jaratlan Bot
-            ]
+    { csapat = Array.fromList [ margo ]
+    , aktualisKarakterIdx = 0
     , ujKarakter = ujKarakter
     , kockadobas = 0
     }
@@ -289,10 +301,18 @@ update msg model =
 
         FajValasztas faj ->
             let
-                updateFaj karakter ujFaj =
-                    { karakter | faj = ujFaj }
+                updateFaj mkarakter ujFaj =
+                    case mkarakter of
+                        Just karakter ->
+                            { karakter | faj = ujFaj }
+
+                        Nothing ->
+                            margo
+
+                aKarakter =
+                    aktualisKarakter model
             in
-                ( { model | karakter = (updateFaj model.karakter faj) }, Cmd.none )
+                ( { model | csapat = Array.set model.aktualisKarakterIdx (updateFaj aKarakter faj) model.csapat }, Cmd.none )
 
         KockaDobas darab oldalszam plusz ->
             ( model, kockaDobasGeneralas darab oldalszam plusz )
@@ -337,7 +357,7 @@ view model =
     div [ class "content" ]
         [ viewHeader "M.A.G.U.S Játékos"
         , viewDobalas model.kockadobas
-        , viewKarakter model.karakter
+        , viewKarakter (aktualisKarakter model)
 
         --        , viewEntryList model.entries
         --        , viewScore (sumMarkedPoints model.entries)
@@ -378,22 +398,28 @@ viewDobalas aktualisDobas =
             ]
 
 
-viewKarakter : Karakter -> Html Msg
-viewKarakter karakter =
-    div [ class "karakter" ]
-        [ viewFaj karakter.faj
-        , viewKaszt karakter.kaszt
-        , viewJellem karakter.jellem
-        , div [ class "iskola" ]
-            [ viewCimke "Iskola"
-            , text karakter.iskola
-            ]
-        , viewKepessegek karakter.kepessegek
-        , viewAlapKezdemenyezoErtek karakter
-        , viewAlapTamadoErtek karakter
-        , viewAlapVedoErtek karakter
-        , viewFegyverek karakter
-        ]
+viewKarakter : Maybe Karakter -> Html Msg
+viewKarakter mkarakter =
+    case mkarakter of
+        Just karakter ->
+            div [ class "karakter" ]
+                [ viewFaj karakter.faj
+                , viewKaszt karakter.kaszt
+                , viewJellem karakter.jellem
+                , div [ class "iskola" ]
+                    [ viewCimke "Iskola"
+                    , text karakter.iskola
+                    ]
+                , viewKepessegek karakter.kepessegek
+                , viewAlapKezdemenyezoErtek karakter
+                , viewAlapTamadoErtek karakter
+                , viewAlapVedoErtek karakter
+                , viewFegyverek karakter
+                ]
+
+        _ ->
+            div [ class "karakter" ]
+                [ text "Nincs kiválasztott karakter!" ]
 
 
 viewFegyverek : Karakter -> Html Msg
