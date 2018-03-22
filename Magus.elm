@@ -448,16 +448,20 @@ viewKarakter mkarakter =
         Just karakter ->
             div [ class "karakter" ]
                 [ viewFaj karakter.faj
-                , viewKaszt karakter.kaszt
-                , viewJellem karakter.jellem
-                , div [ class "iskola" ]
-                    [ viewCimke "Iskola"
-                    , text karakter.iskola
+                , div [ class "fojellemzok" ]
+                    [ viewKaszt karakter.kaszt
+                    , viewJellem karakter.jellem
+                    , div [ class "iskola" ]
+                        [ viewCimke "Iskola"
+                        , text karakter.iskola
+                        ]
+                    , viewKepessegek karakter.kepessegek
                     ]
-                , viewKepessegek karakter.kepessegek
-                , viewAlapKezdemenyezoErtek karakter
-                , viewAlapTamadoErtek karakter
-                , viewAlapVedoErtek karakter
+                , ul []
+                    [ viewAlapKezdemenyezoErtek karakter
+                    , viewAlapTamadoErtek karakter
+                    , viewAlapVedoErtek karakter
+                    ]
                 , viewFegyverek karakter
                 ]
 
@@ -490,17 +494,17 @@ viewFegyver karakter fegyverKepzettseg =
 
 viewAlapVedoErtek : Karakter -> Html Msg
 viewAlapVedoErtek karakter =
-    viewKepesseg "Alap VE" (calcAlapVE karakter)
+    li [] [ viewKepesseg "Alap VE" (calcAlapVE karakter) ]
 
 
 viewAlapTamadoErtek : Karakter -> Html Msg
 viewAlapTamadoErtek karakter =
-    viewKepesseg "Alap TE" (calcAlapTE karakter)
+    li [] [ viewKepesseg "Alap TE" (calcAlapTE karakter) ]
 
 
 viewAlapKezdemenyezoErtek : Karakter -> Html Msg
 viewAlapKezdemenyezoErtek karakter =
-    viewKepesseg "Alap KE" (calcAlapKE karakter)
+    li [] [ viewKepesseg "Alap KE" (calcAlapKE karakter) ]
 
 
 viewKepessegek : Kepessegek -> Html Msg
@@ -520,7 +524,7 @@ viewKepessegek kepessegek =
 
 viewKepesseg : String -> Int -> Html Msg
 viewKepesseg cimke ertek =
-    div []
+    div [ class "cimkezett" ]
         [ viewCimke cimke
         , text (toString ertek)
         ]

@@ -149,7 +149,32 @@ hr {
   border-top: 1px dashed #c5c5c5;
 }
 
+
+ul {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #AAA;
+  text-align: center;
+}
+
+ul li {
+  flex-grow: 1;
+  margin: 2px;
+  padding: 4px;
+  list-style: none;
+  background-color: #CCC;
+}
+
+ul li.marked {
+  flex-grow: 5;
+  background: #fff;
+  font-weight: bold;
+}
+
 ul.fegyverek {
+  display: grid;
   margin: 10px 0;
   list-style: disc;
   font-size: 1em;
@@ -162,61 +187,18 @@ ul.fegyverek li {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-ul.fegyver {
-  margin: 0;
-  padding: 0 20px;
-  list-style: square;
-  font-size: 1em;
-  text-align: left;
+div.fojellemzok {
+  display: grid;
+  grid-gap: 10px;
 }
 
-ul.fegyver li {
-  padding: 0;
-  background: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+div.kepessegek {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 10px;
 }
 
 .cimke {
   font-weight: bold
 }
 
-
-ul.faj {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #AAA;
-}
-
-ul.faj li {
-  margin: 2px;
-  padding: 4px;
-  list-style: none;
-  float: left;
-  background-color: #CCC;
-}
-
-ul.faj li.marked {
-  background: #fff;
-  font-weight: bold;
-}
-
-ul.karakterValaszto {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #AAA;
-}
-
-ul.karakterValaszto li {
-  margin: 2px;
-  padding: 4px;
-  list-style: none;
-  float: left;
-  background-color: #CCC;
-}
-
-ul.karakterValaszto li.marked {
-  background: #fff;
-  font-weight: bold;
-}
