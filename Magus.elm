@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Random
 import Kaszt exposing (..)
+import Kocka exposing (..)
 
 
 -- MODEL
@@ -298,11 +299,8 @@ calcFegyverVE karakter fegyverKepzettseg =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewRandom randomNumber ->
-            ( model, Cmd.none )
-
         NewGame ->
-            ( model, generateRandomNumber 100 )
+            ( model, Cmd.none )
 
         Mark id ->
             let
@@ -329,11 +327,11 @@ update msg model =
             in
                 ( { model | csapat = Array.set model.aktualisKarakterIdx (updateFaj aKarakter faj) model.csapat }, Cmd.none )
 
-        KockaDobas darab oldalszam plusz ->
-            ( model, kockaDobasGeneralas darab oldalszam plusz )
+        KockaDobas darab oldalszam plusz probalkozas ->
+            ( model, kockaDobasGeneralas darab oldalszam plusz probalkozas )
 
-        UjDobas ( veletlenErtek, plusz ) ->
-            ( { model | kockadobas = (List.sum veletlenErtek) + plusz }, Cmd.none )
+        UjDobas ( ( veletlenErtek1, veletlenErtek2 ), plusz ) ->
+            ( { model | kockadobas = (Basics.max (List.sum veletlenErtek1) (List.sum veletlenErtek2)) + plusz }, Cmd.none )
 
         KarakterValasztas index ->
             ( { model | aktualisKarakterIdx = index }, Cmd.none )
@@ -346,14 +344,9 @@ update msg model =
 -- COMMANDS
 
 
-generateRandomNumber : Int -> Cmd Msg
-generateRandomNumber max =
-    Random.generate NewRandom (Random.int 1 max)
-
-
-kockaDobasGeneralas : Int -> Int -> Int -> Cmd Msg
-kockaDobasGeneralas db max plusz =
-    Random.generate UjDobas (Random.pair (Random.list db (Random.int 1 max)) (Random.int plusz plusz))
+kockaDobasGeneralas : Int -> Int -> Int -> Int -> Cmd Msg
+kockaDobasGeneralas db max plusz probalkozas =
+    Random.generate UjDobas (kockaDobasRandom db max plusz probalkozas)
 
 
 
@@ -363,10 +356,9 @@ kockaDobasGeneralas db max plusz =
 type Msg
     = NewGame
     | Mark Int
-    | NewRandom Int
     | FajValasztas Faj
-    | KockaDobas Int Int Int
-    | UjDobas ( List Int, Int )
+    | KockaDobas Int Int Int Int
+    | UjDobas ( ( List Int, List Int ), Int )
     | KarakterValasztas Int
     | UjKarakter
 
@@ -393,33 +385,20 @@ view model =
 
 viewDobalas : Int -> Html Msg
 viewDobalas aktualisDobas =
-    let
-        kockaKod darab oldalak plusz =
-            case ( darab, oldalak, plusz ) of
-                ( 1, old, 0 ) ->
-                    "k" ++ (toString old)
-
-                ( 1, old, _ ) ->
-                    "k" ++ (toString old) ++ "+" ++ (toString plusz)
-
-                ( _, old, 0 ) ->
-                    (toString darab) ++ "k" ++ (toString oldalak)
-
-                ( _, _, _ ) ->
-                    (toString darab) ++ "k" ++ (toString oldalak) ++ "+" ++ (toString plusz)
-
-        viewKockaButton darab oldalak plusz =
-            li [ classList [ ( "marked", False ) ], onClick (KockaDobas darab oldalak plusz) ] [ text (kockaKod darab oldalak plusz) ]
-    in
-        div []
-            [ viewCimke "Dobott érték"
-            , text (toString aktualisDobas)
-            , ul [ class "kocka" ]
-                [ viewKockaButton 1 6 0
-                , viewKockaButton 4 10 0
-                , viewKockaButton 2 3 3
-                ]
+    div []
+        [ viewCimke "Dobott érték"
+        , text (toString aktualisDobas)
+        , ul [ class "kocka" ]
+            [ viewKockaButton 1 6 0 2
+            , viewKockaButton 4 10 0 1
+            , viewKockaButton 2 3 3 1
             ]
+        ]
+
+
+viewKockaButton : Int -> Int -> Int -> Int -> Html Msg
+viewKockaButton darab oldalak plusz probalkozas =
+    li [ classList [ ( "marked", False ) ], onClick (KockaDobas darab oldalak plusz probalkozas) ] [ text (kockaKod darab oldalak plusz probalkozas) ]
 
 
 viewKarakterValaszto : Model -> Html Msg
