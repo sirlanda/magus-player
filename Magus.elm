@@ -327,8 +327,8 @@ update msg model =
             in
                 ( { model | csapat = Array.set model.aktualisKarakterIdx (updateFaj aKarakter faj) model.csapat }, Cmd.none )
 
-        KockaDobas darab oldalszam plusz probalkozas ->
-            ( model, kockaDobasGeneralas darab oldalszam plusz probalkozas )
+        KockaDobas leiro ->
+            ( model, kockaDobasGeneralas leiro )
 
         UjDobas ( ( veletlenErtek1, veletlenErtek2 ), plusz ) ->
             ( { model | kockadobas = (Basics.max (List.sum veletlenErtek1) (List.sum veletlenErtek2)) + plusz }, Cmd.none )
@@ -344,9 +344,9 @@ update msg model =
 -- COMMANDS
 
 
-kockaDobasGeneralas : Int -> Int -> Int -> Int -> Cmd Msg
-kockaDobasGeneralas db max plusz probalkozas =
-    Random.generate UjDobas (kockaDobasRandom db max plusz probalkozas)
+kockaDobasGeneralas : KockaLeiro -> Cmd Msg
+kockaDobasGeneralas leiro =
+    Random.generate UjDobas (kockaDobasRandom leiro)
 
 
 
@@ -357,7 +357,7 @@ type Msg
     = NewGame
     | Mark Int
     | FajValasztas Faj
-    | KockaDobas Int Int Int Int
+    | KockaDobas KockaLeiro
     | UjDobas ( ( List Int, List Int ), Int )
     | KarakterValasztas Int
     | UjKarakter
@@ -374,11 +374,6 @@ view model =
         , viewDobalas model.kockadobas
         , viewKarakterValaszto model
         , viewKarakter (aktualisKarakter model)
-
-        --        , viewEntryList model.entries
-        --        , viewScore (sumMarkedPoints model.entries)
-        --        , div [ class "button-group" ]
-        --            [ button [ onClick NewGame ] [ text "New Game" ] ]
         , div [ class "debug" ] [ text (toString model) ]
         ]
 
@@ -389,16 +384,16 @@ viewDobalas aktualisDobas =
         [ viewCimke "Dobott érték"
         , text (toString aktualisDobas)
         , ul [ class "kocka" ]
-            [ viewKockaButton 1 6 0 2
-            , viewKockaButton 4 10 0 1
-            , viewKockaButton 2 3 3 1
+            [ viewKockaButton (KockaLeiro 1 6 0 2)
+            , viewKockaButton (KockaLeiro 4 10 0 1)
+            , viewKockaButton (KockaLeiro 2 3 3 1)
             ]
         ]
 
 
-viewKockaButton : Int -> Int -> Int -> Int -> Html Msg
-viewKockaButton darab oldalak plusz probalkozas =
-    li [ classList [ ( "marked", False ) ], onClick (KockaDobas darab oldalak plusz probalkozas) ] [ text (kockaKod darab oldalak plusz probalkozas) ]
+viewKockaButton : KockaLeiro -> Html Msg
+viewKockaButton leiro =
+    li [ classList [ ( "marked", False ) ], onClick (KockaDobas leiro) ] [ text (kockaKod leiro) ]
 
 
 viewKarakterValaszto : Model -> Html Msg
