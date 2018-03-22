@@ -200,3 +200,23 @@ ul.faj li.marked {
   background: #fff;
   font-weight: bold;
 }
+
+ul.karakterValaszto {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #AAA;
+}
+
+ul.karakterValaszto li {
+  margin: 2px;
+  padding: 4px;
+  list-style: none;
+  float: left;
+  background-color: #CCC;
+}
+
+ul.karakterValaszto li.marked {
+  background: #fff;
+  font-weight: bold;
+}

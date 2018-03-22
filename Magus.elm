@@ -112,9 +112,24 @@ margo =
         ]
 
 
+hodor : Karakter
+hodor =
+    Karakter "Hodor"
+        Khal
+        Pap
+        Elet
+        "közép"
+        (Kepessegek 12 13 14 12 13 14 15 16 17)
+        [ FegyverKepzettseg Alapfok Bot
+        , FegyverKepzettseg Mesterfok Tor
+        , FegyverKepzettseg Hasonlo Okol
+        , FegyverKepzettseg Jaratlan Kard
+        ]
+
+
 initialModel : Model
 initialModel =
-    { csapat = Array.fromList [ margo ]
+    { csapat = Array.fromList [ margo, hodor ]
     , aktualisKarakterIdx = 0
     , ujKarakter = ujKarakter
     , kockadobas = 0
@@ -320,6 +335,12 @@ update msg model =
         UjDobas ( veletlenErtek, plusz ) ->
             ( { model | kockadobas = (List.sum veletlenErtek) + plusz }, Cmd.none )
 
+        KarakterValasztas index ->
+            ( { model | aktualisKarakterIdx = index }, Cmd.none )
+
+        UjKarakter ->
+            ( { model | csapat = Array.append model.csapat (Array.fromList [ model.ujKarakter ]) }, Cmd.none )
+
 
 
 -- COMMANDS
@@ -346,6 +367,8 @@ type Msg
     | FajValasztas Faj
     | KockaDobas Int Int Int
     | UjDobas ( List Int, Int )
+    | KarakterValasztas Int
+    | UjKarakter
 
 
 
@@ -357,6 +380,7 @@ view model =
     div [ class "content" ]
         [ viewHeader "M.A.G.U.S Játékos"
         , viewDobalas model.kockadobas
+        , viewKarakterValaszto model
         , viewKarakter (aktualisKarakter model)
 
         --        , viewEntryList model.entries
@@ -395,6 +419,26 @@ viewDobalas aktualisDobas =
                 , viewKockaButton 4 10 0
                 , viewKockaButton 2 3 3
                 ]
+            ]
+
+
+viewKarakterValaszto : Model -> Html Msg
+viewKarakterValaszto model =
+    let
+        viewKarakterGomb ( index, karakter ) =
+            li [ classList [ ( "marked", index == model.aktualisKarakterIdx ) ], onClick (KarakterValasztas index) ] [ text karakter.nev ]
+
+        karakterGombok =
+            model.csapat
+                |> Array.toIndexedList
+                |> List.map viewKarakterGomb
+
+        ujKarakterGomb =
+            li [ classList [ ( "marked", False ) ], onClick (UjKarakter) ] [ text "+" ]
+    in
+        div []
+            [ viewCimke "Csapat"
+            , ul [ class "karakterValaszto" ] (karakterGombok ++ [ ujKarakterGomb ])
             ]
 
 
