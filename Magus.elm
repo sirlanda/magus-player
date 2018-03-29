@@ -15,7 +15,7 @@ import Kocka exposing (..)
 type alias Model =
     { csapat : Array Karakter
     , aktualisKarakterIdx : Int
-    , ujKarakter : Karakter
+    , ujKarakter : Maybe Karakter
     , kockadobas : Int
     }
 
@@ -132,7 +132,7 @@ initialModel : Model
 initialModel =
     { csapat = Array.fromList [ margo, hodor ]
     , aktualisKarakterIdx = 0
-    , ujKarakter = ujKarakter
+    , ujKarakter = Maybe.Nothing
     , kockadobas = 0
     }
 
@@ -317,36 +317,113 @@ update msg model =
                 updateFaj mkarakter ujFaj =
                     case mkarakter of
                         Just karakter ->
-                            { karakter | faj = ujFaj }
+                            Just { karakter | faj = ujFaj }
 
                         Nothing ->
-                            margo
-
-                aKarakter =
-                    aktualisKarakter model
+                            Nothing
             in
-                ( { model | csapat = Array.set model.aktualisKarakterIdx (updateFaj aKarakter faj) model.csapat }, Cmd.none )
+                ( { model | ujKarakter = updateFaj model.ujKarakter faj }, Cmd.none )
+
+        KasztValasztas kaszt ->
+            let
+                updateKaszt mkarakter ujKaszt =
+                    case mkarakter of
+                        Just karakter ->
+                            Just { karakter | kaszt = ujKaszt }
+
+                        Nothing ->
+                            Nothing
+            in
+                ( { model | ujKarakter = updateKaszt model.ujKarakter kaszt }, Cmd.none )
+
+        KepessegDobas ->
+            case model.ujKarakter of
+                Just karakter ->
+                    ( model, kepessegDobasGeneralas karakter )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         KockaDobas leiro ->
             ( model, kockaDobasGeneralas leiro )
 
-        UjDobas ( ( veletlenErtek1, veletlenErtek2 ), plusz ) ->
-            ( { model | kockadobas = (Basics.max (List.sum veletlenErtek1) (List.sum veletlenErtek2)) + plusz }, Cmd.none )
+        UjDobas dobottErtek ->
+            ( { model | kockadobas = kiertekeles dobottErtek }, Cmd.none )
 
         KarakterValasztas index ->
             ( { model | aktualisKarakterIdx = index }, Cmd.none )
 
         UjKarakter ->
-            ( { model | csapat = Array.append model.csapat (Array.fromList [ model.ujKarakter ]) }, Cmd.none )
+            ( { model | ujKarakter = Just ujKarakter }, Cmd.none )
+
+        UjKepessegErtekek kepessegek ->
+            let
+                kt =
+                    kepessegek
+                        |> List.map kiertekeles
+                        |> Array.fromList
+
+                get tomb idx =
+                    case Array.get idx tomb of
+                        Just val ->
+                            val
+
+                        Nothing ->
+                            0
+
+                ujkepessegek =
+                    Kepessegek (get kt 0) (get kt 1) (get kt 2) (get kt 3) (get kt 4) (get kt 5) (get kt 6) (get kt 7) (get kt 8)
+
+                updateKepessegek mkarakter =
+                    case mkarakter of
+                        Just karakter ->
+                            Just { karakter | kepessegek = ujkepessegek }
+
+                        Nothing ->
+                            Nothing
+            in
+                ( { model | ujKarakter = updateKepessegek model.ujKarakter }, Cmd.none )
 
 
 
+-- UjKarakter
+--( { model | csapat = Array.append model.csapat (Array.fromList [ model.ujKarakter ]) }, Cmd.none )
 -- COMMANDS
 
 
 kockaDobasGeneralas : KockaLeiro -> Cmd Msg
 kockaDobasGeneralas leiro =
     Random.generate UjDobas (kockaDobasRandom leiro)
+
+
+kepessegDobasGeneralas : Karakter -> Cmd Msg
+kepessegDobasGeneralas karakter =
+    let
+        mKasztErtek =
+            findKasztLeiro karakter.kaszt
+
+        kepessegDobasok : KepessegDobasok
+        kepessegDobasok =
+            case mKasztErtek of
+                Just kasztErtek ->
+                    kasztErtek.kepessegDobasok
+
+                Nothing ->
+                    KepessegDobasok kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2 kl_3k6x2
+    in
+        Random.generate UjKepessegErtekek
+            (flattenList
+                [ (kockaDobasRandom kepessegDobasok.ero)
+                , (kockaDobasRandom kepessegDobasok.gyorsasag)
+                , (kockaDobasRandom kepessegDobasok.ugyesseg)
+                , (kockaDobasRandom kepessegDobasok.allokepesseg)
+                , (kockaDobasRandom kepessegDobasok.egeszseg)
+                , (kockaDobasRandom kepessegDobasok.szepseg)
+                , (kockaDobasRandom kepessegDobasok.intelligencia)
+                , (kockaDobasRandom kepessegDobasok.asztral)
+                , (kockaDobasRandom kepessegDobasok.akaratero)
+                ]
+            )
 
 
 
@@ -357,10 +434,13 @@ type Msg
     = NewGame
     | Mark Int
     | FajValasztas Faj
+    | KasztValasztas Kaszt
+    | KepessegDobas
     | KockaDobas KockaLeiro
-    | UjDobas ( ( List Int, List Int ), Int )
+    | UjDobas DobottErtek
     | KarakterValasztas Int
     | UjKarakter
+    | UjKepessegErtekek (List DobottErtek)
 
 
 
@@ -369,13 +449,22 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    div [ class "content" ]
-        [ viewHeader "M.A.G.U.S Játékos"
-        , viewDobalas model.kockadobas
-        , viewKarakterValaszto model
-        , viewKarakter (aktualisKarakter model)
-        , div [ class "debug" ] [ text (toString model) ]
-        ]
+    let
+        viewUjVagyRegi =
+            case model.ujKarakter of
+                Just karakter ->
+                    viewKarakterSzerkeszto karakter
+
+                Nothing ->
+                    viewKarakter (aktualisKarakter model)
+    in
+        div [ class "content" ]
+            [ viewHeader "M.A.G.U.S Játékos"
+            , viewDobalas model.kockadobas
+            , viewKarakterValaszto model
+            , viewUjVagyRegi
+            , div [ class "debug" ] [ text (toString model) ]
+            ]
 
 
 viewDobalas : Int -> Html Msg
@@ -413,6 +502,76 @@ viewKarakterValaszto model =
         div []
             [ viewCimke "Csapat"
             , ul [ class "karakterValaszto" ] (karakterGombok ++ [ ujKarakterGomb ])
+            ]
+
+
+viewKarakterSzerkeszto : Karakter -> Html Msg
+viewKarakterSzerkeszto karakter =
+    div [ class "karakter" ]
+        [ viewFaj karakter.faj
+        , div [ class "fojellemzok" ]
+            [ viewKasztValaszto karakter.kaszt
+            , viewJellem karakter.jellem
+            , div [ class "iskola" ]
+                [ viewCimke "Iskola"
+                , text karakter.iskola
+                ]
+            , viewKepessegekSzerkeszto karakter.kepessegek
+            ]
+        , ul []
+            [ viewAlapKezdemenyezoErtek karakter
+            , viewAlapTamadoErtek karakter
+            , viewAlapVedoErtek karakter
+            ]
+        , viewFegyverek karakter
+        ]
+
+
+viewKepessegekSzerkeszto : Kepessegek -> Html Msg
+viewKepessegekSzerkeszto kepessegek =
+    if kepessegek.ero == 0 then
+        div [] [ span [ class "kocka", onClick (KepessegDobas) ] [ text "Dobd!" ] ]
+    else
+        div []
+            [ viewKepessegek kepessegek
+            , span [ class "kocka", onClick (KepessegDobas) ] [ text "Dobd újra!" ]
+            ]
+
+
+viewKasztValaszto : Kaszt -> Html Msg
+viewKasztValaszto kaszt =
+    div [ class "kaszt" ]
+        [ viewCimke "Kaszt"
+        , viewKasztButtons kaszt
+        ]
+
+
+viewKasztButtons : Kaszt -> Html Msg
+viewKasztButtons kaszt =
+    let
+        viewKasztButton aktualis =
+            li [ classList [ ( "marked", kaszt == aktualis ) ], onClick (KasztValasztas aktualis) ] [ text (toString aktualis) ]
+    in
+        ul [ class "faj" ]
+            [ viewKasztButton Harcos
+            , viewKasztButton Gladiator
+            , viewKasztButton Fejvadasz
+            , viewKasztButton Lovag
+            , viewKasztButton Amazon
+            , viewKasztButton Barbar
+            , viewKasztButton Bajvivo
+            , viewKasztButton Tolvaj
+            , viewKasztButton Bard
+            , viewKasztButton Pap
+            , viewKasztButton Paplovag
+            , viewKasztButton Szerzetes
+            , viewKasztButton Saman
+            , viewKasztButton Harcmuvesz
+            , viewKasztButton Kardmuvesz
+            , viewKasztButton Boszorkany
+            , viewKasztButton Boszorkanymester
+            , viewKasztButton Tuzvarazslo
+            , viewKasztButton Varazslo
             ]
 
 

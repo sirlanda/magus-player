@@ -20,7 +20,7 @@ header {
 
 .content {
   margin: 20px auto; 
-  width: 500px;
+  width: 800px;
 }
 
 footer {
@@ -157,6 +157,7 @@ ul {
   overflow: hidden;
   background-color: #AAA;
   text-align: center;
+  flex-flow: row wrap;
 }
 
 ul li {
