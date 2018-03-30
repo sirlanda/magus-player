@@ -530,11 +530,19 @@ viewKarakterSzerkeszto karakter =
 viewKepessegekSzerkeszto : Kepessegek -> Html Msg
 viewKepessegekSzerkeszto kepessegek =
     if kepessegek.ero == 0 then
-        div [] [ span [ class "kocka", onClick (KepessegDobas) ] [ text "Dobd!" ] ]
+        div []
+            [ div [ class "kocka", onClick (KepessegDobas) ]
+                [ img [ src "kocka.png" ] []
+                , span [] [ text "Dobd!" ]
+                ]
+            ]
     else
         div []
             [ viewKepessegek kepessegek
-            , span [ class "kocka", onClick (KepessegDobas) ] [ text "Dobd újra!" ]
+            , div [ class "kocka", onClick (KepessegDobas) ]
+                [ img [ src "kocka.png" ] []
+                , span [] [ text "Dobd újra!" ]
+                ]
             ]
 
 
