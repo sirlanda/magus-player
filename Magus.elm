@@ -312,29 +312,23 @@ update msg model =
             in
                 ( model, Cmd.none )
 
-        FajValasztas faj ->
-            let
-                updateFaj mkarakter ujFaj =
-                    case mkarakter of
-                        Just karakter ->
-                            Just { karakter | faj = ujFaj }
+        {- FajValasztas faj ->
+           let
+               updateFaj mkarakter ujFaj =
+                   case mkarakter of
+                       Just karakter ->
+                           Just { karakter | faj = ujFaj }
 
-                        Nothing ->
-                            Nothing
-            in
-                ( { model | ujKarakter = updateFaj model.ujKarakter faj }, Cmd.none )
+                       Nothing ->
+                           Nothing
+           in
+               ( { model | ujKarakter = updateFaj model.ujKarakter faj }, Cmd.none )
+        -}
+        FajValasztas ujfaj ->
+            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | faj = ujfaj }) }, Cmd.none )
 
-        KasztValasztas kaszt ->
-            let
-                updateKaszt mkarakter ujKaszt =
-                    case mkarakter of
-                        Just karakter ->
-                            Just { karakter | kaszt = ujKaszt }
-
-                        Nothing ->
-                            Nothing
-            in
-                ( { model | ujKarakter = updateKaszt model.ujKarakter kaszt }, Cmd.none )
+        KasztValasztas ujkaszt ->
+            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | kaszt = ujkaszt }) }, Cmd.none )
 
         KepessegDobas ->
             case model.ujKarakter of
@@ -357,16 +351,7 @@ update msg model =
             ( { model | ujKarakter = Just ujKarakter }, Cmd.none )
 
         Elnevezes ujnev ->
-            let
-                updateNev mkarakter ujnev =
-                    case mkarakter of
-                        Just karakter ->
-                            Just { karakter | nev = ujnev }
-
-                        Nothing ->
-                            Nothing
-            in
-                ( { model | ujKarakter = updateNev model.ujKarakter ujnev }, Cmd.none )
+            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | nev = ujnev }) }, Cmd.none )
 
         UjKarakterMentes ->
             case model.ujKarakter of
@@ -375,6 +360,9 @@ update msg model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        UjKarakterMegsem ->
+            ( { model | ujKarakter = Nothing }, Cmd.none )
 
         UjKepessegErtekek kepessegek ->
             let
@@ -403,6 +391,16 @@ update msg model =
                             Nothing
             in
                 ( { model | ujKarakter = updateKepessegek model.ujKarakter }, Cmd.none )
+
+
+updater : Maybe Karakter -> (Karakter -> Karakter) -> Maybe Karakter
+updater mkarakter beallito =
+    case mkarakter of
+        Just karakter ->
+            Just (beallito karakter)
+
+        Nothing ->
+            Nothing
 
 
 
@@ -461,6 +459,7 @@ type Msg
     | UjKepessegErtekek (List DobottErtek)
     | Elnevezes String
     | UjKarakterMentes
+    | UjKarakterMegsem
 
 
 
@@ -550,10 +549,11 @@ viewKarakterSzerkeszto karakter =
 
 viewNevSzerkeszto : String -> Html Msg
 viewNevSzerkeszto nev =
-    div []
+    div [ class "nevszerkeszto" ]
         [ viewCimke "Név"
         , input [ type_ "text", placeholder "Nev Elek", onInput Elnevezes ] []
-        , span [ class "mentes", onClick UjKarakterMentes ] [ text "Mentés" ]
+        , div [ class "gomb", onClick UjKarakterMentes ] [ text "Mentés" ]
+        , div [ class "gomb", onClick UjKarakterMegsem ] [ text "Mégsem" ]
         ]
 
 

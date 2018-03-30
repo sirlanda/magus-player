@@ -207,3 +207,16 @@ div.kepessegek {
   background: #fff;
   vertical-align: middle;
 }
+
+div.nevszerkeszto {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: 1fr 4fr 2fr 2fr;
+}
+
+.gomb {
+  padding: 7pt;
+  background-color: #AAA;
+  text-align: center;
+  font-weight: bold
+}
