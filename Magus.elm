@@ -3,7 +3,7 @@ module Magus exposing (..)
 import Array exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Random
 import Kaszt exposing (..)
 import Kocka exposing (..)
@@ -356,6 +356,26 @@ update msg model =
         UjKarakter ->
             ( { model | ujKarakter = Just ujKarakter }, Cmd.none )
 
+        Elnevezes ujnev ->
+            let
+                updateNev mkarakter ujnev =
+                    case mkarakter of
+                        Just karakter ->
+                            Just { karakter | nev = ujnev }
+
+                        Nothing ->
+                            Nothing
+            in
+                ( { model | ujKarakter = updateNev model.ujKarakter ujnev }, Cmd.none )
+
+        UjKarakterMentes ->
+            case model.ujKarakter of
+                Just karakter ->
+                    ( { model | ujKarakter = Nothing, csapat = Array.append model.csapat (Array.fromList [ karakter ]) }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         UjKepessegErtekek kepessegek ->
             let
                 kt =
@@ -386,8 +406,6 @@ update msg model =
 
 
 
--- UjKarakter
---( { model | csapat = Array.append model.csapat (Array.fromList [ model.ujKarakter ]) }, Cmd.none )
 -- COMMANDS
 
 
@@ -441,6 +459,8 @@ type Msg
     | KarakterValasztas Int
     | UjKarakter
     | UjKepessegErtekek (List DobottErtek)
+    | Elnevezes String
+    | UjKarakterMentes
 
 
 
@@ -512,6 +532,7 @@ viewKarakterSzerkeszto karakter =
         , div [ class "fojellemzok" ]
             [ viewKasztValaszto karakter.kaszt
             , viewJellem karakter.jellem
+            , viewNevSzerkeszto karakter.nev
             , div [ class "iskola" ]
                 [ viewCimke "Iskola"
                 , text karakter.iskola
@@ -524,6 +545,15 @@ viewKarakterSzerkeszto karakter =
             , viewAlapVedoErtek karakter
             ]
         , viewFegyverek karakter
+        ]
+
+
+viewNevSzerkeszto : String -> Html Msg
+viewNevSzerkeszto nev =
+    div []
+        [ viewCimke "Név"
+        , input [ type_ "text", placeholder "Nev Elek", onInput Elnevezes ] []
+        , span [ class "mentes", onClick UjKarakterMentes ] [ text "Mentés" ]
         ]
 
 
