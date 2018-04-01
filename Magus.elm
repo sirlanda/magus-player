@@ -296,6 +296,77 @@ calcFegyverVE karakter fegyverKepzettseg =
         (calcAlapVE karakter) + (kepzettsegFokVEBonus fegyverKepzettseg.fok) + (fegyverVE fegyverKepzettseg.fegyver)
 
 
+fajKepessegBonusz : Faj -> Kepessegek
+fajKepessegBonusz faj =
+    case faj of
+        Ember ->
+            Kepessegek 0 0 0 0 0 0 0 0 0
+
+        Elf ->
+            Kepessegek -2 1 1 -1 0 1 0 0 0
+
+        Felelf ->
+            Kepessegek -1 0 1 0 0 0 0 0 0
+
+        Torpe ->
+            Kepessegek 1 0 0 1 1 -2 -1 -1 0
+
+        Ork ->
+            Kepessegek 2 0 0 1 2 -3 -1 -3 0
+
+        Amund ->
+            Kepessegek 1 0 0 1 0 2 0 -1 0
+
+        Dzsen ->
+            Kepessegek 0 0 0 0 0 0 2 0 0
+
+        Khal ->
+            Kepessegek 3 2 1 2 3 0 -1 -5 0
+
+        Wier ->
+            Kepessegek 0 0 0 0 0 1 1 0 0
+
+
+pluszBonusz : Kepessegek -> Kepessegek -> Kepessegek
+pluszBonusz bonusz kepessegek =
+    { kepessegek
+        | ero = kepessegek.ero + bonusz.ero
+        , gyorsasag = kepessegek.gyorsasag + bonusz.gyorsasag
+        , ugyesseg = kepessegek.ugyesseg + bonusz.ugyesseg
+        , allokepesseg = kepessegek.allokepesseg + bonusz.allokepesseg
+        , egeszseg = kepessegek.egeszseg + bonusz.egeszseg
+        , szepseg = kepessegek.szepseg + bonusz.szepseg
+        , intelligencia = kepessegek.intelligencia + bonusz.intelligencia
+        , asztral = kepessegek.asztral + bonusz.asztral
+        , akaratero = kepessegek.akaratero + bonusz.akaratero
+    }
+
+
+minuszBonusz : Kepessegek -> Kepessegek -> Kepessegek
+minuszBonusz bonusz kepessegek =
+    { kepessegek
+        | ero = kepessegek.ero - bonusz.ero
+        , gyorsasag = kepessegek.gyorsasag - bonusz.gyorsasag
+        , ugyesseg = kepessegek.ugyesseg - bonusz.ugyesseg
+        , allokepesseg = kepessegek.allokepesseg - bonusz.allokepesseg
+        , egeszseg = kepessegek.egeszseg - bonusz.egeszseg
+        , szepseg = kepessegek.szepseg - bonusz.szepseg
+        , intelligencia = kepessegek.intelligencia - bonusz.intelligencia
+        , asztral = kepessegek.asztral - bonusz.asztral
+        , akaratero = kepessegek.akaratero - bonusz.akaratero
+    }
+
+
+fajbonuszKi : Faj -> Kepessegek -> Kepessegek
+fajbonuszKi faj kepessegek =
+    minuszBonusz (fajKepessegBonusz faj) kepessegek
+
+
+fajbonuszBe : Faj -> Kepessegek -> Kepessegek
+fajbonuszBe faj kepessegek =
+    pluszBonusz (fajKepessegBonusz faj) kepessegek
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -312,23 +383,11 @@ update msg model =
             in
                 ( model, Cmd.none )
 
-        {- FajValasztas faj ->
-           let
-               updateFaj mkarakter ujFaj =
-                   case mkarakter of
-                       Just karakter ->
-                           Just { karakter | faj = ujFaj }
-
-                       Nothing ->
-                           Nothing
-           in
-               ( { model | ujKarakter = updateFaj model.ujKarakter faj }, Cmd.none )
-        -}
         FajValasztas ujfaj ->
-            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | faj = ujfaj }) }, Cmd.none )
+            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | faj = ujfaj, kepessegek = fajbonuszKi karakter.faj (fajbonuszBe ujfaj karakter.kepessegek) }) }, Cmd.none )
 
         KasztValasztas ujkaszt ->
-            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | kaszt = ujkaszt }) }, Cmd.none )
+            ( { model | ujKarakter = updater model.ujKarakter (\karakter -> { karakter | kaszt = ujkaszt, kepessegek = Kepessegek 0 0 0 0 0 0 0 0 0 }) }, Cmd.none )
 
         KepessegDobas ->
             case model.ujKarakter of
@@ -385,7 +444,7 @@ update msg model =
                 updateKepessegek mkarakter =
                     case mkarakter of
                         Just karakter ->
-                            Just { karakter | kepessegek = ujkepessegek }
+                            Just { karakter | kepessegek = fajbonuszBe karakter.faj ujkepessegek }
 
                         Nothing ->
                             Nothing
@@ -559,7 +618,7 @@ viewNevSzerkeszto nev =
 
 viewKepessegekSzerkeszto : Kepessegek -> Html Msg
 viewKepessegekSzerkeszto kepessegek =
-    if kepessegek.ero == 0 then
+    if kepessegek.akaratero < 3 then
         div []
             [ div [ class "kocka", onClick (KepessegDobas) ]
                 [ img [ src "kocka.png" ] []
