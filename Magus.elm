@@ -119,7 +119,7 @@ hodor =
         Khal
         Pap
         Elet
-        "közép"
+        "gimi"
         (Kepessegek 12 13 14 12 13 14 15 16 17)
         [ FegyverKepzettseg Alapfok Bot
         , FegyverKepzettseg Mesterfok Tor
