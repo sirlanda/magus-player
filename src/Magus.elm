@@ -1,6 +1,7 @@
 module Magus exposing (..)
 
 import Array exposing (..)
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -367,6 +368,72 @@ fajbonuszBe faj kepessegek =
     pluszBonusz (fajKepessegBonusz faj) kepessegek
 
 
+fajToString : Faj -> String
+fajToString faj =
+    case faj of
+        Ember -> "Ember"
+        Elf -> "Elf"
+        Felelf -> "Felelf"
+        Torpe -> "Torpe"
+        Ork -> "Ork"
+        Amund -> "Amund"
+        Dzsen -> "Dzsen"
+        Khal -> "Khal"
+        Wier -> "Wier"
+
+
+kasztToString : Kaszt -> String
+kasztToString kaszt =
+    case kaszt of
+        Harcos -> "Harcos"
+        Gladiator -> "Gladiator"
+        Fejvadasz -> "Fejvadasz"
+        Lovag -> "Lovag"
+        Amazon -> "Amazon"
+        Barbar -> "Barbar"
+        Bajvivo -> "Bajvivo"
+        Tolvaj -> "Tolvaj"
+        Bard -> "Bard"
+        Pap -> "Pap"
+        Paplovag -> "Paplovag"
+        Szerzetes -> "Szerzetes"
+        Saman -> "Saman"
+        Harcmuvesz -> "Harcmuvesz"
+        Kardmuvesz -> "Kardmuvesz"
+        Boszorkany -> "Boszorkany"
+        Boszorkanymester -> "Boszorkanymester"
+        Tuzvarazslo -> "Tuzvarazslo"
+        Varazslo -> "Varazslo"
+
+
+jellemToString : Jellem -> String
+jellemToString jellem =
+    case jellem of
+        Elet -> "Elet"
+        Halal -> "Halal"
+        Rend -> "Rend"
+        Kaosz -> "Kaosz"
+
+
+fegyverToString : Fegyver -> String
+fegyverToString fegyver =
+    case fegyver of
+        Okol -> "Okol"
+        Kard -> "Kard"
+        Tor -> "Tor"
+        Bot -> "Bot"
+        KardFejvadasz -> "KardFejvadasz"
+
+
+kepzettsegFokToString : KepzettsegFok -> String
+kepzettsegFokToString fok =
+    case fok of
+        Alapfok -> "Alapfok"
+        Mesterfok -> "Mesterfok"
+        Hasonlo -> "Hasonlo"
+        Jaratlan -> "Jaratlan"
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -541,7 +608,7 @@ view model =
             , viewDobalas model.kockadobas
             , viewKarakterValaszto model
             , viewUjVagyRegi
-            , div [ class "debug" ] [ text (toString model) ]
+            , div [ class "debug" ] [ text (Debug.toString model) ]
             ]
 
 
@@ -549,7 +616,7 @@ viewDobalas : Int -> Html Msg
 viewDobalas aktualisDobas =
     div []
         [ viewCimke "Dobott érték"
-        , text (toString aktualisDobas)
+        , text (String.fromInt aktualisDobas)
         , ul [ class "kocka" ]
             [ viewKockaButton (KockaLeiro 1 6 0 2)
             , viewKockaButton (KockaLeiro 4 10 0 1)
@@ -647,7 +714,7 @@ viewKasztButtons : Kaszt -> Html Msg
 viewKasztButtons kaszt =
     let
         viewKasztButton aktualis =
-            li [ classList [ ( "marked", kaszt == aktualis ) ], onClick (KasztValasztas aktualis) ] [ text (toString aktualis) ]
+            li [ classList [ ( "marked", kaszt == aktualis ) ], onClick (KasztValasztas aktualis) ] [ text (kasztToString aktualis) ]
     in
         ul [ class "faj" ]
             [ viewKasztButton Harcos
@@ -712,12 +779,12 @@ viewFegyverek karakter =
 viewFegyver : Karakter -> FegyverKepzettseg -> Html Msg
 viewFegyver karakter fegyverKepzettseg =
     li []
-        [ viewCimke (toString fegyverKepzettseg.fegyver)
-        , text (toString fegyverKepzettseg.fok)
+        [ viewCimke (fegyverToString fegyverKepzettseg.fegyver)
+        , text (kepzettsegFokToString fegyverKepzettseg.fok)
         , ul [ class "fegyver" ]
-            [ li [] [ viewCimke "KE", text (toString (calcFegyverKE karakter fegyverKepzettseg)) ]
-            , li [] [ viewCimke "TE", text (toString (calcFegyverTE karakter fegyverKepzettseg)) ]
-            , li [] [ viewCimke "VE", text (toString (calcFegyverVE karakter fegyverKepzettseg)) ]
+            [ li [] [ viewCimke "KE", text (String.fromInt (calcFegyverKE karakter fegyverKepzettseg)) ]
+            , li [] [ viewCimke "TE", text (String.fromInt (calcFegyverTE karakter fegyverKepzettseg)) ]
+            , li [] [ viewCimke "VE", text (String.fromInt (calcFegyverVE karakter fegyverKepzettseg)) ]
             ]
         ]
 
@@ -756,7 +823,7 @@ viewKepesseg : String -> Int -> Html Msg
 viewKepesseg cimke ertek =
     div [ class "cimkezett" ]
         [ viewCimke cimke
-        , text (toString ertek)
+        , text (String.fromInt ertek)
         ]
 
 
@@ -769,7 +836,7 @@ viewFajButtons : Faj -> Html Msg
 viewFajButtons faj =
     let
         viewFajButton aktualis =
-            li [ classList [ ( "marked", faj == aktualis ) ], onClick (FajValasztas aktualis) ] [ text (toString aktualis) ]
+            li [ classList [ ( "marked", faj == aktualis ) ], onClick (FajValasztas aktualis) ] [ text (fajToString aktualis) ]
     in
         ul [ class "faj" ]
             [ viewFajButton Ember
@@ -796,7 +863,7 @@ viewKaszt : Kaszt -> Html Msg
 viewKaszt kaszt =
     div [ class "kaszt" ]
         [ viewCimke "Kaszt"
-        , text (toString kaszt)
+        , text (kasztToString kaszt)
         ]
 
 
@@ -804,7 +871,7 @@ viewJellem : Jellem -> Html Msg
 viewJellem jellem =
     div [ class "jellem" ]
         [ viewCimke "Jellem"
-        , text (toString jellem)
+        , text (jellemToString jellem)
         ]
 
 
@@ -814,11 +881,11 @@ viewHeader title =
         [ h1 [] [ text title ] ]
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = ( initialModel, Cmd.none )
+    Browser.element
+        { init = \_ -> ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = (\_ -> Sub.none)
+        , subscriptions = \_ -> Sub.none
         }

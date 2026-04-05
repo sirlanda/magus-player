@@ -6,8 +6,9 @@
     <script src="magus.js"></script>
   </head>
   <body>
+  	<div id="elm"></div>
   	<script type="text/javascript">
-  		Elm.Magus.fullscreen();
+  		Elm.Magus.init({ node: document.getElementById("elm") });
   	</script>
   </body>
 </html>

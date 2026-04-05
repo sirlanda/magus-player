@@ -28,7 +28,7 @@ kockaDarabKod darab =
     if darab == 1 then
         ""
     else
-        toString darab
+        String.fromInt darab
 
 
 kockaPluszKod : Int -> String
@@ -36,7 +36,7 @@ kockaPluszKod plusz =
     if plusz == 0 then
         ""
     else
-        " + " ++ (toString plusz)
+        " + " ++ String.fromInt plusz
 
 
 kockaProbalkozasKod : Int -> String
@@ -44,20 +44,20 @@ kockaProbalkozasKod probalkozas =
     if probalkozas == 1 then
         ""
     else
-        " (x" ++ (toString probalkozas) ++ ")"
+        " (x" ++ String.fromInt probalkozas ++ ")"
 
 
 kockaKod : KockaLeiro -> String
 kockaKod leiro =
-    (kockaDarabKod leiro.darab) ++ "k" ++ (toString leiro.oldalak) ++ (kockaPluszKod leiro.plusz) ++ (kockaProbalkozasKod leiro.probalkozas)
+    kockaDarabKod leiro.darab ++ "k" ++ String.fromInt leiro.oldalak ++ kockaPluszKod leiro.plusz ++ kockaProbalkozasKod leiro.probalkozas
 
 
 kockaDobasRandom : KockaLeiro -> Random.Generator DobottErtek
 kockaDobasRandom leiro =
     if leiro.probalkozas == 1 then
-        Random.map3 DobottErtek (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (Random.list leiro.darab (Random.int 1 1)) (Random.int leiro.plusz leiro.plusz)
+        Random.map3 DobottErtek (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (Random.list leiro.darab (constant 1)) (constant leiro.plusz)
     else
-        Random.map3 DobottErtek (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (Random.int leiro.plusz leiro.plusz)
+        Random.map3 DobottErtek (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (Random.list leiro.darab (Random.int 1 leiro.oldalak)) (constant leiro.plusz)
 
 
 
@@ -80,4 +80,4 @@ flattenList generators =
 -}
 constant : a -> Random.Generator a
 constant value =
-    Random.map (\_ -> value) Random.bool
+    Random.map (\_ -> value) (Random.int 0 1)
